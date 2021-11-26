@@ -38,7 +38,7 @@ def lookup(rfc_no):
     return
 def lookuplist(socket, upload_port):
     lookup_request = "LOOKUP " + "RFC " + str(rfc_number) + " " + VERSION + "\r\n" + \
-                     "Host: "+ HOST_NAME + "\r\n" + \
+                     "Host: "+ server_ip + "\r\n" + \
                      "Port: " + str(upload_port) + "\r\n" + \
                      "Title: " + rfc_title + "\r\n" + \
                      "\r\n"
