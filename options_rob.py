@@ -1,6 +1,8 @@
 import socket 
 import os
 from threading import Thread
+import time
+from time import gmtime, strftime
 import platform
 
 VERSION = "P2P-CI/1.0"
@@ -25,14 +27,16 @@ def Serve_Clients():
 
   while True:
     client_sock, client_address = upload_socket.accept()
-    data = conn.recv(MAX_RCV)
+    data = client_sock.recv(MAX_RCV)
     rows = data.decode().splitlines()
     row1 = rows[0].split()
     rfcVersion = row1[3]
     command = row1[0]
+    row4 = rows[3].split()
+    rfcTitle = row4[1]
     if rfcVersion != VERSION:
                 response = f"""{VERSION_NOT_SUPPORTED} P2P-CI Version Not Supported"""
-                conn.sendall(response.encode())
+                client_sock.sendall(response.encode())
     else:
       rfc_fileName = RFC_PATH + rfcTitle + rfc_number + ".txt"
       current_time = strftime("%a, %d %b %Y %X GMT", gmtime())
@@ -99,8 +103,6 @@ def lookuplist(socket, upload_port):
     # print(rfc_d)
   return 
 def disconnect():
-    socketForConnectingToCentralServer.send(bytes("disconnect","utf-8"))
-    print(socketForConnectingToCentralServer.recv(2048).decode())
     socketForConnectingToCentralServer.close()
     exit(0)
     return

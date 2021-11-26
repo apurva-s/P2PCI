@@ -58,15 +58,15 @@ def client_handle(conn, address):
             portNumber = rows[2].split()[1]
             with Lock():
                 for rfcNumber in rfcsNosWithTitles:
-                    rfc_list = rfcsNosWithTitles[rfc_number]
-                    for portNum in rfcsNosWithPeers:
+                    rfc_list = list(rfcsNosWithTitles[rfc_number])
+                    for portNum in rfc_list:
                         if address == rfc_number:
                             response.append(f"""RFC {rfc_number},
                             {rfcTitle},
                             {address}""")
                             conn.sendall(response.encode())
 
-        elif command == "lookup":
+        elif command == "LOOKUP":
             rfcVersion = row1[3]
             rfc_number = row1[2]
             row4 = rows[3].split()
@@ -77,9 +77,10 @@ def client_handle(conn, address):
             else:
                 with Lock():
                     for rfcNumber in rfcsNosWithTitles:
-                        rfc_list = rfcsNosWithTitles[rfc_number]
-                        for rfc in rfc_list:
-                            
+                        rfc_list = list(rfcsNosWithPeers[rfc_number])
+                        for key in rfc_list:
+                            print(key)
+
         elif command == "disconnect":
             conn.send(bytes("Connection closing","utf-8"))
             #remove from active peers, remove from RFC 
