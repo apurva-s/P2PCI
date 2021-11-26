@@ -1,6 +1,7 @@
 import socket 
 import os
-from threading import Thread
+from collections import defaultdict
+from threading import Lock, Thread
 import time
 from time import gmtime, strftime
 import platform
@@ -17,6 +18,9 @@ MAX_RCV = 2096
 RFC_PATH = "./RFC/Client1/"
 
 client_ip = '127.0.0.1'
+active_peers = set()
+rfcsNosWithTitles = defaultdict(str)
+rfcsNosWithPeers = defaultdict(set)
 
 upload_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 upload_socket.bind(client_ip, 0)
@@ -41,6 +45,12 @@ def Serve_Clients():
       rfc_fileName = RFC_PATH + rfcTitle + rfc_number + ".txt"
       current_time = strftime("%a, %d %b %Y %X GMT", gmtime())
       mod_time = strftime("%a, %d %b %Y %X GMT", time.localtime(os.path.getmtime(rfc_fileName)))
+
+      with Lock():
+        active_peers.add(client_address)
+        #print(active_peers)
+        rfcsNosWithTitles[int(rfc_number)] = rfcTitle
+        rfcsNosWithPeers[int(rfc_number)].add(client_address)
       with open(rfc_fileName, 'r') as open_file:
         fileData = open_file.read()
       dataLength = str(len(fileData))
