@@ -24,32 +24,36 @@ def add(socket,rfc_number,rfc_title):
     print(response)
 
     return 
-def lookup(rfc_no):
-    socketForConnectingToCentralServer.send(bytes("lookup","utf-8"))
-    print(socketForConnectingToCentralServer.recv(2048).decode())
-    socketForConnectingToCentralServer.send(bytes(str(rfc_no),"utf-8"))
-    print("peer for rfc",socketForConnectingToCentralServer.recv(2048).decode())
-    return
+def lookup(socket, rfc_number, rfc_title):
+   lookup_request = f"""LOOKUP RFC {rfc_number} {VERSION},
+   Host: {server_ip},
+   Port: {upload_port},
+   Title: {rfc_title}"""
+   
+   socket.sendall(lookup_request.encode())
+   response = socket.recv(MAX_RCV).decode()
+   return
+
 def lookuplist(socket, upload_port):
-    lookup_request = "LOOKUP " + "RFC " + str(rfc_number) + " " + VERSION + "\r\n" + \
-                     "Host: "+ server_ip + "\r\n" + \
-                     "Port: " + str(upload_port) + "\r\n" + \
-                     "Title: " + rfc_title + "\r\n" + \
-                     "\r\n"
-    
-    socket.send(bytes("lookuplist","utf-8"))
-    rfc_d = socketForConnectingToCentralServer.recv(10000)
+  lookuplist_request = f"""LOOKUPLIST ALL {VERSION},
+  Host: {server_ip},
+  Port: {upload_port}"""
+  socket.sendall(lookuplist_request.encode())
+  response = socket.recv(MAX_RCV).decode()
+  print("List RFC")
+  print("Server response:")
+  print(response)
     # print(rfc_d)
     # for i in rfc_d:
     #     print(rfc_d[i])
 #pickle.loads(pickled_animals)
-    rfc_d = pickle.loads(rfc_d)
-    for i in rfc_d:
-        print(i, list(rfc_d[i]))
+   # rfc_d = pickle.loads(rfc_d)
+   # for i in rfc_d:
+    #    print(i, list(rfc_d[i]))
     # rfc_d = rfc_d[28::]
     # rfc_d = rfc_d[:-1]
     # print(rfc_d)
-    return 
+  return 
 def disconnect():
     socketForConnectingToCentralServer.send(bytes("disconnect","utf-8"))
     print(socketForConnectingToCentralServer.recv(2048).decode())
@@ -82,8 +86,9 @@ while True:
         print("Finished add functionality")
       case 2:
         print("Look up an RFC and download it ")
-        rfc_no = list(map(str,input("Enter RFC number:").split()))
-        lookup(rfc_no)
+        raw = list(map(str,input("Enter space separated RFC number and Title:").split()))
+        rfc_number, rfc_title = raw[0],raw[1]
+        lookup(socketForConnectingToCentralServer, rfc_number, rfc_title)
       case 3:
         response = lookuplist(socketForConnectingToCentralServer, upload_port)
         print("List RFC\n\nServer Response:\n" + response)

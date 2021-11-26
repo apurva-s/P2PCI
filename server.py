@@ -12,14 +12,12 @@ OK = 200
 BAD_REQUEST = 400
 NOT_FOUND = 404
 VERSION_NOT_SUPPORTED = 505
-VERSION = "P2P-CI/1.0"
+VERSION = "P2P-CI/1.0,"
 SERVER_OS = platform.platform()
 RFC_PATH = "./RFC/Client1/"
 active_peers = set()
 rfcsNosWithTitles = defaultdict(str)
 rfcsNosWithPeers = defaultdict(set)
-
-
 
 def client_handle(conn, address):
     while True:
@@ -28,39 +26,60 @@ def client_handle(conn, address):
         row1 = rows[0].split()
         command = row1[0]
         if command == "ADD":
+            rfcVersion = row1[3]
+            if rfcVersion != VERSION:
+                response = f"""{VERSION_NOT_SUPPORTED} P2P-CI Version Not Supported"""
+                conn.sendall(response.encode())
+            else:
+                rfc_number = row1[2]
+                row4 = rows[3].split()
+                rfcTitle = row4[1]
+                rfc_fileName = RFC_PATH + rfcTitle + rfc_number + ".txt"
+                current_time = strftime("%a, %d %b %Y %X GMT", gmtime())
+                mod_time = strftime("%a, %d %b %Y %X GMT", time.localtime(os.path.getmtime(rfc_fileName)))
+                
+                with Lock():
+                    active_peers.add(address)
+                    #print(active_peers)
+                    rfcsNosWithTitles[int(rfc_number)] = rfcTitle
+                    rfcsNosWithPeers[int(rfc_number)].add(address)
+                with open(rfc_fileName, 'r') as open_file:
+                    fileData = open_file.read()
+                dataLength = str(len(fileData))
+                response = f"""
+                {VERSION} {OK} OK,
+                Date: {current_time},
+                OS: {SERVER_OS},
+                Last-Modified: {mod_time},
+                Content-Length: {dataLength},
+                Content-Type: text/text"""
+                conn.sendall(response.encode())
+        elif command == "LOOKUPLIST":
+            portNumber = rows[2].split()[1]
+            with Lock():
+                for rfcNumber in rfcsNosWithTitles:
+                    rfc_list = rfcsNosWithTitles[rfc_number]
+                    for portNum in rfcsNosWithPeers:
+                        if address == rfc_number:
+                            response.append(f"""RFC {rfc_number},
+                            {rfcTitle},
+                            {address}""")
+                            conn.sendall(response.encode())
+
+        elif command == "lookup":
+            rfcVersion = row1[3]
             rfc_number = row1[2]
             row4 = rows[3].split()
             rfcTitle = row4[1]
-            rfc_fileName = RFC_PATH + rfcTitle + rfc_number + ".txt"
-            current_time = strftime("%a, %d %b %Y %X GMT", gmtime())
-            mod_time = strftime("%a, %d %b %Y %X GMT", time.localtime(os.path.getmtime(rfc_fileName)))
-            
-            with Lock():
-                active_peers.add(address)
-                #print(active_peers)
-                rfcsNosWithTitles[int(rfc_number)] = rfcTitle
-                rfcsNosWithPeers[int(rfc_number)].add(address)
-            with open(rfc_fileName, 'r') as open_file:
-                fileData = open_file.read()
-            dataLength = str(len(fileData))
-            response = f"""
-            {VERSION} {OK} OK,
-            Date: {current_time},
-            OS: {SERVER_OS},
-            Last-Modified: {mod_time},
-            Content-Length: {dataLength},
-            Content-Type: text/text"""
-            conn.sendall(response.encode())
-        elif command == "lookuplist":
-            conn.send(pickle.dumps(rfcsNosWithPeers))
-
-        elif command == "lookup":
-            conn.send(bytes("In the look up command on server side","utf-8"))
-            with Lock():
-                rfc_no = conn.recv(2048).decode()
-                rfc_no = int(rfc_no.strip('[').strip(']').replace("'", ""))
-                print(type(rfc_no),rfc_no,"rfc_no")
-                conn.send(bytes(str(rfcsNosWithPeers[rfc_no]),"utf-8"))
+            if rfcVersion != VERSION:
+                response = f"""{VERSION_NOT_SUPPORTED} P2P-CI Version Not Supported"""
+                conn.sendall(response.encode())
+            else:
+                with Lock():
+                    for rfcNumber in rfcsNosWithTitles:
+                        rfc_list = rfcsNosWithTitles[rfc_number]
+                        for rfc in rfc_list:
+                            
         elif command == "disconnect":
             conn.send(bytes("Connection closing","utf-8"))
             #remove from active peers, remove from RFC 
