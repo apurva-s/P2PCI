@@ -1,38 +1,56 @@
 import socket
 from collections import defaultdict
 from threading import Lock, Thread
-import pickle
+import time
+from time import gmtime, strftime
+import os
+import platform
+
+MAX_SEND = 2096
+MAX_RCV = 2096
+OK = 200
+BAD_REQUEST = 400
+NOT_FOUND = 404
+VERSION_NOT_SUPPORTED = 505
+VERSION = "P2P-CI/1.0"
+SERVER_OS = platform.platform()
+RFC_PATH = "./RFC/Client1/"
 active_peers = set()
 rfcsNosWithTitles = defaultdict(str)
 rfcsNosWithPeers = defaultdict(set)
+
+
+
 def client_handle(conn, address):
     while True:
-        data = pickle.loads(conn.recv(2046))
-        rows = data.splitlines()
+        data = conn.recv(MAX_RCV)
+        rows = data.decode().splitlines()
         row1 = rows[0].split()
         command = row1[0]
         if command == "ADD":
+            rfc_number = row1[2]
+            row4 = rows[3].split()
+            rfcTitle = row4[1]
+            rfc_fileName = RFC_PATH + rfcTitle + rfc_number + ".txt"
+            current_time = strftime("%a, %d %b %Y %X GMT", gmtime())
+            mod_time = strftime("%a, %d %b %Y %X GMT", time.localtime(os.path.getmtime(rfc_fileName)))
+            
             with Lock():
-                print("In active peers lock")
                 active_peers.add(address)
-                print(active_peers)
-            print("Out of the lock for active peers")
-            # conn.send(bytes("Hello from the server","utf-8"))
-            # print(conn.recv(1024).decode())
-            conn.send(bytes("Received the command","utf-8"))
-            rfc_number = conn.recv(1024).decode()
-            conn.send(bytes("Received RFC numbers","utf-8"))
-            print("received the rfc number",rfc_number)
-            with Lock():
-                print("In the rfc lock")
-                rfcTitle = conn.recv(1024).decode()
+                #print(active_peers)
                 rfcsNosWithTitles[int(rfc_number)] = rfcTitle
                 rfcsNosWithPeers[int(rfc_number)].add(address)
-                print(rfcsNosWithTitles)
-                print(rfcsNosWithPeers)
-            
-            print("Reached before successfully")
-            conn.send(bytes("Successfully made additions","utf-8"))
+            with open(rfc_fileName, 'r') as open_file:
+                fileData = open_file.read()
+            dataLength = str(len(fileData))
+            response = f"""
+            {VERSION} {OK} OK,
+            Date: {current_time},
+            OS: {SERVER_OS},
+            Last-Modified: {mod_time},
+            Content-Length: {dataLength},
+            Content-Type: text/text"""
+            conn.sendall(response.encode())
         elif command == "lookuplist":
             conn.send(pickle.dumps(rfcsNosWithPeers))
 
@@ -65,14 +83,14 @@ def client_handle(conn, address):
                 # print(rfcs)
             conn.close()
             break 
-
 server_ip = '127.0.0.1'
 server_port = 7734
 server_address = (server_ip,server_port)
 serverSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 serverSocket.bind(server_address)
-serverSocket.listen(1)
+serverSocket.listen()
 while True:
+    print('Waiting for clients: ')
     conn, address = serverSocket.accept()
     thread = Thread(target=client_handle,args=(conn,address))
     thread.start()
