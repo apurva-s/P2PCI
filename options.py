@@ -7,18 +7,33 @@ OK = 200
 BAD_REQUEST = 400
 NOT_FOUND = 404
 VERSION_NOT_SUPPORTED = 505
+STATUS_CODES = {
+                OK: "OK",
+                BAD_REQUEST: "Bad Request",
+                NOT_FOUND: "Not Found",
+                VERSION_NOT_SUPPORTED: "P2P-CI Version Not Supported"
+                }
 
 def add(socket,rfc_number,rfc_title):
     #connect to the central server
 
-    add_req = "ADD" + " RFC " + str(rfc_number) + " " + VERSION + "\r\n" + \
+    #do multi-line strings like this with three " characters
+    # Use f' to include the variables in the string
+    add_req = """ ADD RFC {rfc_no} VERSION 
+    HOST: {platform.platform()}
+    PORT: {}
+    
+    """"
+    
+    
+    "ADD" + " RFC " + str(rfc_number) + " " + VERSION + "\r\n" + \
                   "Host: " + server_ip +"\r\n" + \
                   "Port: " + str(upload_port) + "\r\n" + \
                   "Title: " + rfc_title + "\r\n" + \
                   "\r\n"
     
     socket.send(pickle.dumps(add_req))
-    response = socket.recv(pickle.loads(10000))
+    response = socket.recv(pickle.loads(response))
 
     ### append to our dictionary?
 
@@ -31,14 +46,14 @@ def lookup(rfc_no):
     print("peer for rfc",socketForConnectingToCentralServer.recv(2048).decode())
     return
 def lookuplist(socket, upload_port):
-    lookup_req = "LOOKUP " + "RFC " + str(rfc_number) + " " + VERSION + "\r\n" + \
-                     "Host: " + server_ip + "\r\n" + \
+    lookup_request = "LOOKUP " + "RFC " + str(rfc_number) + " " + VERSION + "\r\n" + \
+                     "Host: "+ server_ip + "\r\n" + \
                      "Port: " + str(upload_port) + "\r\n" + \
                      "Title: " + rfc_title + "\r\n" + \
                      "\r\n"
     
-    socket.send(pickle.dumps(lookup_req))
-    rfc_d = socket.recv(10000)
+    socket.send(bytes("lookuplist","utf-8"))
+    rfc_d = socketForConnectingToCentralServer.recv(10000)
     # print(rfc_d)
     # for i in rfc_d:
     #     print(rfc_d[i])
