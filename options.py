@@ -63,12 +63,10 @@ def disconnect():
     exit(0)
     return
 def print_available_options():
-    print("0. Show options information")
     print("1. ADD")
-    print("2. LOOKUP")
+    print("2. LOOKUP/DOWNLOAD")
     print("3. LIST")
-    print("4. Download RFC")
-    print("5. DISCONNECT")
+    print("4. DISCONNECT")
 
 server_ip = '127.0.0.1'
 server_port = 7734
@@ -81,20 +79,21 @@ upload_port = socketForConnectingToCentralServer.getsockname()[1]
 while True:
     print_available_options()
     ans = int(input("Select your option: "))
-    if ans == "1":
+    match ans:
+      case 1:
         print('add')
         raw = list(map(str,input("Enter space separated RFC number and Title:").split()))
         rfc_number, rfc_title = raw[0],raw[1]
         add(socketForConnectingToCentralServer,rfc_number,rfc_title)
         print("Finished add functionality")
-    elif ans == "2":
+      case 2:
         print("Look up an RFC and download it ")
         rfc_no = list(map(str,input("Enter RFC number:").split()))
         lookup(rfc_no)
-    elif ans == "3":
+      case 3:
         response = lookuplist(socketForConnectingToCentralServer, upload_port)
         print("List RFC\n\nServer Response:\n" + response)
-    elif ans == "4":
+      case 4:
         print("Disconnect")
         disconnect()
     
