@@ -1,3 +1,40 @@
+'''
+import os
+import platform
+import socket
+# print(os.name)
+# print()
+print(" Host:","\n","OS:",platform.system(),"OS",platform.version())
+
+
+port_no = upload_sock.getsockname()[1] 
+# gesthostname()
+
+
+
+
+# Server - 
+
+serverSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+serverSocket.bind((socket.gethostname(),7734))
+server_ip = socket.gethostname()
+serverSocket.listen(1)
+while True:
+    conn, address = serverSocket.accept()
+    break 
+
+# Client - 
+selfSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+selfSocket.connect((server_ip,7734))
+
+
+
+'''
+
+
+
+
+
 import socket 
 import pickle
 import os
@@ -30,7 +67,7 @@ def add(socket,rfc_number,rfc_title):
     output = "Apurva 26"
     
     
-    "ADD" + " RFC " + str(rfc_number) + " " + VERSION + "\r\n" + \
+    add_req = "ADD" + " RFC " + str(rfc_number) + " " + VERSION + "\r\n" + \
                   "Host: " + server_ip +"\r\n" + \
                   "Port: " + str(upload_port) + "\r\n" + \
                   "Title: " + rfc_title + "\r\n" + \
