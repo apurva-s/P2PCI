@@ -54,31 +54,13 @@ STATUS_CODES = {
 def add(socket,rfc_number,rfc_title):
     #connect to the central server
 
-    #do multi-line strings like this with three " characters
-    # Use f' to include the variables in the string
-    add_req = """ ADD RFC {rfc_no} VERSION 
-    HOST: {platform.platform()}
-    PORT: {}
-    
-    """"
-    age = 26
-    f"Apurva {age}"
-    
-    output = "Apurva 26"
-    
-    
-    add_req = "ADD" + " RFC " + str(rfc_number) + " " + VERSION + "\r\n" + \
-                  "Host: " + server_ip +"\r\n" + \
-                  "Port: " + str(upload_port) + "\r\n" + \
-                  "Title: " + rfc_title + "\r\n" + \
-                  "\r\n"
+    add_req = f'''ADD RFC {rfc_number} {VERSION},
+                  Host: {server_ip}
+                  Port: {upload_port}
+                  Title: {rfc_title}'''
     
     socket.send(pickle.dumps(add_req))
     response = socket.recv(pickle.loads(response))
-
-    ### append to our dictionary?
-
-    
     return 
 def lookup(rfc_no):
     socketForConnectingToCentralServer.send(bytes("lookup","utf-8"))
@@ -87,11 +69,10 @@ def lookup(rfc_no):
     print("peer for rfc",socketForConnectingToCentralServer.recv(2048).decode())
     return
 def lookuplist(socket, upload_port):
-    lookup_request = "LOOKUP " + "RFC " + str(rfc_number) + " " + VERSION + "\r\n" + \
-                     "Host: "+ server_ip + "\r\n" + \
-                     "Port: " + str(upload_port) + "\r\n" + \
-                     "Title: " + rfc_title + "\r\n" + \
-                     "\r\n"
+    lookup_request = f'''LOOKUP RFC {rfc_number} VERSION,
+                     Host:  {server_ip},
+                     Port:  {upload_port},
+                     Title: {rfc_title}'''
     
     socket.send(bytes("lookuplist","utf-8"))
     rfc_d = socketForConnectingToCentralServer.recv(10000)
