@@ -24,6 +24,10 @@ def add(socket,rfc_number,rfc_title):
     PORT: {}
     
     """"
+    age = 26
+    f"Apurva {age}"
+    
+    output = "Apurva 26"
     
     
     "ADD" + " RFC " + str(rfc_number) + " " + VERSION + "\r\n" + \
