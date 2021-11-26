@@ -80,6 +80,17 @@ def client_handle(conn, address):
                         rfc_list = list(rfcsNosWithPeers[rfc_number])
                         for key in rfc_list:
                             print(key)
+        elif command == "GET":
+            rfcVersion = row1[3]
+            rfc_number = row1[2]
+            row4 = rows[3].split()
+            rfcTitle = row4[1]
+            if rfcVersion != VERSION:
+                response = f"""{VERSION_NOT_SUPPORTED} P2P-CI Version Not Supported"""
+                conn.sendall(response.encode())
+            else:
+                with Lock():
+                    response = 
 
         elif command == "disconnect":
             conn.send(bytes("Connection closing","utf-8"))
