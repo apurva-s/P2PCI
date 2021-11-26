@@ -1,12 +1,14 @@
 import socket 
 import os
 from threading import Thread
+import platform
 
 VERSION = "P2P-CI/1.0"
 OK = 200
 BAD_REQUEST = 400
 NOT_FOUND = 404
 VERSION_NOT_SUPPORTED = 505
+VERSION = "P2P-CI/1.0,"
 CLIENT_OS = platform.platform()
 MAX_SEND = 2096
 MAX_RCV = 2096
