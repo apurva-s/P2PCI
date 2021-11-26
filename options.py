@@ -1,16 +1,34 @@
 import socket 
 import pickle
-def add(socketForConnectingToCentralServer,rfc_number,rfc_title):
-    #connect to the central server 
-    print(rfc_number,rfc_title)
-    socketForConnectingToCentralServer.send(bytes("add","utf-8"))
-    print(socketForConnectingToCentralServer.recv(2048).decode())
-    socketForConnectingToCentralServer.send(bytes(str(rfc_number),"utf-8"))
-    print(socketForConnectingToCentralServer.recv(2048).decode())
-    socketForConnectingToCentralServer.send(bytes(str(rfc_title),"utf-8"))
-    print("My own client address", socketForConnectingToCentralServer.getsockname())
-    #do I have to disconnect before this connection closes? remove from peers  
-    print(socketForConnectingToCentralServer.recv(2048).decode())
+import os
+
+VERSION = "P2P-CI/1.0"
+OK = 200
+BAD_REQUEST = 400
+NOT_FOUND = 404
+VERSION_NOT_SUPPORTED = 505
+STATUS_CODES = {
+                OK: "OK",
+                BAD_REQUEST: "Bad Request",
+                NOT_FOUND: "Not Found",
+                VERSION_NOT_SUPPORTED: "P2P-CI Version Not Supported"
+                }
+
+def add(socket,rfc_number,rfc_title):
+    #connect to the central server
+
+    add_req = "ADD" + " RFC " + str(rfc_number) + " " + VERSION + "\r\n" + \
+                  "Host: " + server_ip +"\r\n" + \
+                  "Port: " + str(upload_port) + "\r\n" + \
+                  "Title: " + rfc_title + "\r\n" + \
+                  "\r\n"
+    
+    socket.send(pickle.dumps(add_req))
+    response = socket.recv(pickle.loads(response))
+
+    ### append to our dictionary?
+
+    
     return 
 def lookup(rfc_no):
     socketForConnectingToCentralServer.send(bytes("lookup","utf-8"))
@@ -18,8 +36,14 @@ def lookup(rfc_no):
     socketForConnectingToCentralServer.send(bytes(str(rfc_no),"utf-8"))
     print("peer for rfc",socketForConnectingToCentralServer.recv(2048).decode())
     return
-def lookuplist():
-    socketForConnectingToCentralServer.send(bytes("lookuplist","utf-8"))
+def lookuplist(socket, upload_port):
+    lookup_request = "LOOKUP " + "RFC " + str(rfc_number) + " " + VERSION + "\r\n" + \
+                     "Host: "+ HOST_NAME + "\r\n" + \
+                     "Port: " + str(upload_port) + "\r\n" + \
+                     "Title: " + rfc_title + "\r\n" + \
+                     "\r\n"
+    
+    socket.send(bytes("lookuplist","utf-8"))
     rfc_d = socketForConnectingToCentralServer.recv(10000)
     # print(rfc_d)
     # for i in rfc_d:
@@ -37,18 +61,26 @@ def disconnect():
     print(socketForConnectingToCentralServer.recv(2048).decode())
     socketForConnectingToCentralServer.close()
     exit(0)
-    return 
+    return
+def print_available_options():
+    print("0. Show options information")
+    print("1. ADD")
+    print("2. LOOKUP")
+    print("3. LIST")
+    print("4. Download RFC")
+    print("5. DISCONNECT")
 
 server_ip = '127.0.0.1'
 server_port = 7734
 server_address = (server_ip,server_port)
 socketForConnectingToCentralServer = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 socketForConnectingToCentralServer.connect(server_address)
+upload_port = socketForConnectingToCentralServer.getsockname()[1]
 # socketForConnectingToCentralServer.send(bytes("Message from the client to the central server","utf-8"))
 # print(socketForConnectingToCentralServer.recv(5124))
 while True:
-    print("1.Add 2.Look Up 3.List 4.Exit")
-    ans = input()
+    print_available_options()
+    ans = int(input("Select your option: "))
     if ans == "1":
         print('add')
         raw = list(map(str,input("Enter space separated RFC number and Title:").split()))
@@ -60,9 +92,11 @@ while True:
         rfc_no = list(map(str,input("Enter RFC number:").split()))
         lookup(rfc_no)
     elif ans == "3":
-        print("List")
-        lookuplist()
+        response = lookuplist(socketForConnectingToCentralServer, upload_port)
+        print("List RFC\n\nServer Response:\n" + response)
     elif ans == "4":
         print("Disconnect")
         disconnect()
+    
+
     
