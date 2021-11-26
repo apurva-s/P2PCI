@@ -86,9 +86,19 @@ def lookup(socket, rfc_number, rfc_title):
    Host: {server_ip},
    Port: {upload_port},
    Title: {rfc_title}"""
-   
+   filedata = " "
+
    socket.sendall(lookup_request.encode())
    response = socket.recv(MAX_RCV).decode()
+   result = input("Download y/n? ")
+
+   if result == "y":
+     
+     file_path = RFC_PATH + 'rfc' + rfc_number + ".txt"
+     new_file = open(file_path, 'w')
+     new_file.write(filedata)
+     new_file.close()
+
    return
 
 def lookuplist(socket, upload_port):
@@ -115,6 +125,10 @@ def disconnect():
     socketForConnectingToCentralServer.close()
     exit(0)
     return
+
+def download(rfc_number, host, port):
+
+
 def print_available_options():
     print("1. ADD")
     print("2. LOOKUP/DOWNLOAD")
