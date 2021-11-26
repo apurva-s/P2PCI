@@ -48,7 +48,6 @@ def Serve_Clients():
 
       with Lock():
         active_peers.add(client_address)
-        #print(active_peers)
         rfcsNosWithTitles[int(rfc_number)] = rfcTitle
         rfcsNosWithPeers[int(rfc_number)].add(client_address)
       with open(rfc_fileName, 'r') as open_file:
