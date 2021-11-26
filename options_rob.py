@@ -1,13 +1,55 @@
 import socket 
 import os
+from threading import Thread
 
 VERSION = "P2P-CI/1.0"
 OK = 200
 BAD_REQUEST = 400
 NOT_FOUND = 404
 VERSION_NOT_SUPPORTED = 505
+CLIENT_OS = platform.platform()
 MAX_SEND = 2096
 MAX_RCV = 2096
+RFC_PATH = "./RFC/Client1/"
+
+client_ip = '127.0.0.1'
+
+upload_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+upload_socket.bind(client_ip, 0)
+upload_port = upload_socket.getsockname()[1]
+
+def Serve_Clients():
+  upload_port.listen()
+
+  while True:
+    client_sock, client_address = upload_socket.accept()
+    data = conn.recv(MAX_RCV)
+    rows = data.decode().splitlines()
+    row1 = rows[0].split()
+    rfcVersion = row1[3]
+    command = row1[0]
+    if rfcVersion != VERSION:
+                response = f"""{VERSION_NOT_SUPPORTED} P2P-CI Version Not Supported"""
+                conn.sendall(response.encode())
+    else:
+      rfc_fileName = RFC_PATH + rfcTitle + rfc_number + ".txt"
+      current_time = strftime("%a, %d %b %Y %X GMT", gmtime())
+      mod_time = strftime("%a, %d %b %Y %X GMT", time.localtime(os.path.getmtime(rfc_fileName)))
+      with open(rfc_fileName, 'r') as open_file:
+        fileData = open_file.read()
+      dataLength = str(len(fileData))
+
+      response = f"""
+                {VERSION} {OK} OK,
+                Date: {current_time},
+                OS: {CLIENT_OS},
+                Last-Modified: {mod_time},
+                Content-Length: {dataLength},
+                Content-Type: text/text"""
+
+      client_sock.sendall(response.encode())
+      client_sock.close()
+
 
 def add(socket,rfc_number,rfc_title):
   
@@ -65,6 +107,9 @@ def print_available_options():
     print("2. LOOKUP/DOWNLOAD")
     print("3. LIST")
     print("4. DISCONNECT")
+
+Serve_Clients = Thread(target=Serve_Clients)
+Serve_Clients.start()
 
 server_ip = '127.0.0.1'
 server_port = 7734
