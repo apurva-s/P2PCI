@@ -1,40 +1,3 @@
-'''
-import os
-import platform
-import socket
-# print(os.name)
-# print()
-print(" Host:","\n","OS:",platform.system(),"OS",platform.version())
-
-
-port_no = upload_sock.getsockname()[1] 
-# gesthostname()
-
-
-
-
-# Server - 
-
-serverSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-serverSocket.bind((socket.gethostname(),7734))
-server_ip = socket.gethostname()
-serverSocket.listen(1)
-while True:
-    conn, address = serverSocket.accept()
-    break 
-
-# Client - 
-selfSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-selfSocket.connect((server_ip,7734))
-
-
-
-'''
-
-
-
-
-
 import socket 
 import pickle
 import os
@@ -52,15 +15,23 @@ STATUS_CODES = {
                 }
 
 def add(socket,rfc_number,rfc_title):
-    #connect to the central server
 
-    add_req = f'''ADD RFC {rfc_number} {VERSION},
+    
+    
+    add_req = f"""ADD RFC {rfc_number} {VERSION},
                   Host: {server_ip}
                   Port: {upload_port}
-                  Title: {rfc_title}'''
+                  Title: {rfc_title}"""
     
     socket.send(pickle.dumps(add_req))
-    response = socket.recv(pickle.loads(response))
+    response = pickle.loads(socket.recv(1000))
+
+    addResult = f"""Add RFC {rfc_number},
+                Server response: {response}"""
+            
+    print(addResult)
+
+    
     return 
 def lookup(rfc_no):
     socketForConnectingToCentralServer.send(bytes("lookup","utf-8"))
@@ -69,10 +40,11 @@ def lookup(rfc_no):
     print("peer for rfc",socketForConnectingToCentralServer.recv(2048).decode())
     return
 def lookuplist(socket, upload_port):
-    lookup_request = f'''LOOKUP RFC {rfc_number} VERSION,
-                     Host:  {server_ip},
-                     Port:  {upload_port},
-                     Title: {rfc_title}'''
+    lookup_request = "LOOKUP " + "RFC " + str(rfc_number) + " " + VERSION + "\r\n" + \
+                     "Host: "+ server_ip + "\r\n" + \
+                     "Port: " + str(upload_port) + "\r\n" + \
+                     "Title: " + rfc_title + "\r\n" + \
+                     "\r\n"
     
     socket.send(bytes("lookuplist","utf-8"))
     rfc_d = socketForConnectingToCentralServer.recv(10000)
