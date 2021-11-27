@@ -5,6 +5,7 @@ import time
 from time import gmtime, strftime
 import os
 import platform
+import pickle
 
 MAX_SEND = 2096
 MAX_RCV = 2096
@@ -54,17 +55,15 @@ def client_handle(conn, address):
                 Content-Length: {dataLength},
                 Content-Type: text/text"""
                 conn.sendall(response.encode())
-        elif command == "LOOKUPLIST":
+        elif command == "LIST":
+            response = []
             portNumber = rows[2].split()[1]
             with Lock():
-                for rfcNumber in rfcsNosWithTitles:
-                    rfc_list = list(rfcsNosWithTitles[rfc_number])
-                    for portNum in rfc_list:
-                        if address == rfc_number:
-                            response.append(f"""RFC {rfc_number},
-                            {rfcTitle},
-                            {address}""")
-                            conn.sendall(response.encode())
+                for key in rfcsNosWithTitles.keys():
+                    response.append("RFC" + key + rfcsNosWithTitles[key] + address + "\r\n")
+                        #response = pickle.dumps(rfcsNosWithPeers)
+                        #conn.sendall(response.encode())
+            conn.sendall(response.encode())
 
         elif command == "LOOKUP":
             rfcVersion = row1[3]
@@ -77,20 +76,21 @@ def client_handle(conn, address):
             else:
                 with Lock():
                     for rfcNumber in rfcsNosWithTitles:
-                        rfc_list = list(rfcsNosWithPeers[rfc_number])
-                        for key in rfc_list:
-                            print(key)
-        elif command == "GET":
-            rfcVersion = row1[3]
-            rfc_number = row1[2]
-            row4 = rows[3].split()
-            rfcTitle = row4[1]
-            if rfcVersion != VERSION:
-                response = f"""{VERSION_NOT_SUPPORTED} P2P-CI Version Not Supported"""
-                conn.sendall(response.encode())
-            else:
-                with Lock():
-                    response = 
+                        rfc_list = list(rfcsNosWithTitles[rfc_number])
+                        ### This section
+                        #for key in rfc_list:
+                        #    print(key)
+       #elif command == "GET":
+        #    rfcVersion = row1[3]
+            # rfc_number = row1[2]
+            # row4 = rows[3].split()
+            # rfcTitle = row4[1]
+            # if rfcVersion != VERSION:
+            #     response = f"""{VERSION_NOT_SUPPORTED} P2P-CI Version Not Supported"""
+            #     conn.sendall(response.encode())
+          #  else:
+          #      with Lock():
+                  #  response = '''
 
         elif command == "disconnect":
             conn.send(bytes("Connection closing","utf-8"))

@@ -5,13 +5,14 @@ from threading import Lock, Thread
 import time
 from time import gmtime, strftime
 import platform
+import pickle
 
 VERSION = "P2P-CI/1.0"
 OK = 200
 BAD_REQUEST = 400
 NOT_FOUND = 404
 VERSION_NOT_SUPPORTED = 505
-VERSION = "P2P-CI/1.0,"
+VERSION = "P2P-CI/1.0"
 CLIENT_OS = platform.platform()
 MAX_SEND = 2096
 MAX_RCV = 2096
@@ -23,11 +24,11 @@ rfcsNosWithTitles = defaultdict(str)
 rfcsNosWithPeers = defaultdict(set)
 
 upload_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-upload_socket.bind(client_ip, 0)
+upload_socket.bind((client_ip, 0))
 upload_port = upload_socket.getsockname()[1]
 
 def Serve_Clients():
-  upload_port.listen()
+  upload_socket.listen()
 
   while True:
     client_sock, client_address = upload_socket.accept()
@@ -102,31 +103,21 @@ def lookup(socket, rfc_number, rfc_title):
    return
 
 def lookuplist(socket, upload_port):
-  lookuplist_request = f"""LOOKUPLIST ALL {VERSION},
+  lookuplist_request = f"""LIST ALL {VERSION},
   Host: {server_ip},
   Port: {upload_port}"""
   socket.sendall(lookuplist_request.encode())
   response = socket.recv(MAX_RCV).decode()
-  print("List RFC")
-  print("Server response:")
-  print(response)
-    # print(rfc_d)
-    # for i in rfc_d:
-    #     print(rfc_d[i])
-#pickle.loads(pickled_animals)
-   # rfc_d = pickle.loads(rfc_d)
-   # for i in rfc_d:
-    #    print(i, list(rfc_d[i]))
-    # rfc_d = rfc_d[28::]
-    # rfc_d = rfc_d[:-1]
-    # print(rfc_d)
+  print("List RFC:")
+  print("Server Response:" )
+  print (response)
   return 
 def disconnect():
     socketForConnectingToCentralServer.close()
     exit(0)
     return
 
-def download(rfc_number, host, port):
+#def download(rfc_number, host, port):
 
 
 def print_available_options():
@@ -162,8 +153,8 @@ while True:
         rfc_number, rfc_title = raw[0],raw[1]
         lookup(socketForConnectingToCentralServer, rfc_number, rfc_title)
       case 3:
-        response = lookuplist(socketForConnectingToCentralServer, upload_port)
-        print("List RFC\n\nServer Response:\n" + response)
+        lookuplist(socketForConnectingToCentralServer, upload_port)
+        
       case 4:
         print("Disconnect")
         disconnect()
