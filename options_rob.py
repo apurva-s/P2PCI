@@ -107,10 +107,10 @@ def lookuplist(socket, upload_port):
   Host: {server_ip},
   Port: {upload_port}"""
   socket.sendall(lookuplist_request.encode())
-  response = socket.recv(MAX_RCV).decode()
+  response = pickle.loads(socket.recv(MAX_RCV))
   print("List RFC:")
   print("Server Response:" )
-  print (response)
+  print(response)
   return 
 def disconnect():
     socketForConnectingToCentralServer.close()
